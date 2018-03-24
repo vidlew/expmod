@@ -1,2 +1,2 @@
 # expmod
-Modular exponentiation and other number stuff
+Modular exponentiation and other number stuff.
