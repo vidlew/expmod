@@ -17,7 +17,8 @@ dig = 50
 data PAdic = P_Adic Int [Integer]
 
 instance Show PAdic where{
-  show (P_Adic e xs) = "..."++if e>=0 || xs!!(-e-1)==0 then reverse $ take dig $ (take e $ cycle "0") ++ w else reverse $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w)
+  show (P_Adic e xs) = "..." ++ if e>=0 || xs!!(-e-1)==0 then reverse $ take dig $ (take e $ cycle "0") ++ (drop (-e) w)
+                                                         else reverse $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w)
                                                   where w   = (f $ xs!!(dig+(if e>=0 then 0 else -1-e)))++(cycle "0")
                                                         f 0 = ""
                                                         f n = (if n`mod`p<=9 then toEnum $ (fromEnum '0')+(fromIntegral $ n`mod`p) else toEnum $ (fromEnum 'a')+(fromIntegral $ (n-10)`mod`p)):(f $ n`div`p)
