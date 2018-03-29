@@ -43,7 +43,7 @@ execOpcode Swap e = return $ Env {x = y e, y = x e, q0 = q0 e, q1 = q1 e, q2 = q
 execOpcode Halt e = return e
 
 primeOp :: Integer -> Opcode
-primeOp p = toEnum $ ((primecount p)-1) `mod` 14
+primeOp p = toEnum $ ((π p)-1) `mod` 14
 
 runNULL :: Environment -> IO ()
 runNULL e = do let p = smallestFactor $ x e
