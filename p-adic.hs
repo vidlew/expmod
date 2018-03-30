@@ -8,7 +8,7 @@ import Expmod
 --E.g., set p=2 for dyadic rationals, p=7 for heptadic rationals, etc.
 --p should be prime
 p :: Integer
-p = 17
+p = 7
 
 dig :: Int
 dig = 50
@@ -37,8 +37,13 @@ instance Num PAdic where{
 ; negate (P_Adic e xs)          = P_Adic e $ zipWith (\x y -> ((p^y)-x)`mod`(p^y)) xs [1..]
 ; abs (P_Adic e (0:xs))         = abs $ P_Adic (e+1) xs
 ; abs (P_Adic e _)              = P_Adic (-e) $ cycle [1]
-; signum _                      = 1
+; signum x                      = x*(abs x)
 }
+
+--Determine whether the p-adic norm of x is at most p^-n
+ordge :: PAdic -> Int -> Bool
+ordge (P_Adic e (0:xs)) n = e>=n || (ordge (P_Adic e $ (`div`p) <$> xs) $ n-1)
+ordge (P_Adic e _) n      = e>=n
 
 --Limit of a, a^a, a^a^a, a^a^a^a, ...
 tower :: Integer -> PAdic
@@ -52,3 +57,19 @@ instance Fractional PAdic where{
 instance Floating PAdic where{
   pi = error "π is not a p-adic number!"
 }
+
+some :: ([Integer] -> Bool) -> Bool
+some f = f $ find f
+
+all :: ([Integer] -> Bool) -> Bool
+all = not.some.(not.)
+
+find :: ([Integer] -> Bool) -> [Integer]
+--find f = g [0..(p-1)] where g (x:xs) = if some (f.(x:)) then x:(find $ f.(x:)) else g xs
+--                            g _      = 0:(find $ f.(0:))
+find f = h:(find $ f.(h:)) where h = g [0..p-1]
+                                 g (x:xs) = if f $ x:(find $ f.(x:)) then x else g xs
+                                 g _ = 0
+
+undigits :: Int -> [Integer] -> PAdic
+undigits e (d:ds) = P_Adic e $ scanl (+) d $ zipWith (*) ds $ (p^) <$> [1..]
