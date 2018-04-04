@@ -17,8 +17,7 @@ dig = 50
 data PAdic p = P_Adic p Int Sequence
 
 instance (Dec p) => Show (PAdic p) where{
-  show (P_Adic u e s) = "..." ++ if e>=0 then reverse $ take dig $ (take e $ cycle "0") ++ (drop (-e) w)
-                                         else reverse $ dropWhile (=='.') $ dropWhile (=='0') $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w)
+  show (P_Adic u e s) = "..." ++ (reverse $ dropWhile (=='.') $ dropWhile (=='0') $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w))
                                  where p = decval u
                                        w   = (f $ s (dig+(if e>=0 then 0 else -e)))++(cycle "0")
                                        f 0 = ""
