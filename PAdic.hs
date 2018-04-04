@@ -1,4 +1,4 @@
-module PAdic where
+module PAdic (mkPAdic, PAdic, ordge) where
 
 import Data.Ratio
 import Expmod
@@ -17,12 +17,12 @@ dig = 50
 data PAdic p = P_Adic p Int Sequence
 
 instance (Dec p) => Show (PAdic p) where{
-  show (P_Adic u e s) = "..." ++ if e>=0 || s (-e-1)==0 then reverse $ take dig $ (take e $ cycle "0") ++ (drop (-e) w)
-                                                      else reverse $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w)
-                                                where p = decval u
-                                                      w   = (f $ s (dig+(if e>=0 then 0 else -e)))++(cycle "0")
-                                                      f 0 = ""
-                                                      f n = (if n`mod`p<=9 then toEnum $ (fromEnum '0')+(fromIntegral $ n`mod`p) else toEnum $ (fromEnum 'a')+(fromIntegral $ (n-10)`mod`p)):(f $ n`div`p)
+  show (P_Adic u e s) = "..." ++ if e>=0 then reverse $ take dig $ (take e $ cycle "0") ++ (drop (-e) w)
+                                         else reverse $ dropWhile (=='.') $ dropWhile (=='0') $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w)
+                                 where p = decval u
+                                       w   = (f $ s (dig+(if e>=0 then 0 else -e)))++(cycle "0")
+                                       f 0 = ""
+                                       f n = (if n`mod`p<=9 then toEnum $ (fromEnum '0')+(fromIntegral $ n`mod`p) else toEnum $ (fromEnum 'a')+(fromIntegral $ (n-10)`mod`p)):(f $ n`div`p)
 }
 
 normalise :: (Dec p) => (PAdic p) -> (PAdic p)
@@ -36,10 +36,10 @@ mkPAdic _ q = fromRational q
 
 instance (Dec p) => Num (PAdic p) where{
   fromInteger 0                   = P_Adic undefined 0 $ const 0
-; fromInteger n                   = x where x = P_Adic undefined 0 $ \m -> n`mod`(p^(m+1))
-                                            p = base x
-; (P_Adic u e s) + (P_Adic _ f t) = P_Adic u (min e f) $ zipWithS (mod) (zipWithS (+) ((*p^(max 0 $ e-f)).s) ((*p^(max 0 $ f-e)).t)) $ ((p^).(+0)) where p = decval u
-; (P_Adic u e s) * (P_Adic _ f t) = P_Adic u (e+f) $ zipWithS (mod) (zipWithS (*) s t) $ ((p^).(+1)) where p = decval u
+; fromInteger n                   = normalise x where x = P_Adic undefined 0 $ \m -> n`mod`(p^(m+1))
+                                                      p = base x
+; (P_Adic u e s) + (P_Adic _ f t) = P_Adic u (min e f) $ zipWithS mod (zipWithS (+) ((*p^(max 0 $ e-f)).s) ((*p^(max 0 $ f-e)).t)) $ ((p^).(+1)) where p = decval u
+; (P_Adic u e s) * (P_Adic _ f t) = P_Adic u (e+f) $ zipWithS mod (zipWithS (*) s t) $ ((p^).(+1)) where p = decval u
 ; negate (P_Adic u e s)           = P_Adic u e $ \m -> (-s m)`mod`(p^(m+1)) where p = decval u
 ; abs (P_Adic u e s)              = if s 0 == 0 then abs $ P_Adic u (e+1) (s.(+1)) else P_Adic u (-e) $ const 1
 ; signum x                        = x*(abs x)
