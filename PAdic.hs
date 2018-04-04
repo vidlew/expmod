@@ -1,4 +1,4 @@
-module PAdic (mkPAdic, PAdic, ordge) where
+module PAdic (mkPAdic, PAdic, ordge, showNDigits) where
 
 import Data.Ratio
 import Expmod
@@ -10,19 +10,26 @@ type Sequence = Int -> Integer
 zipWithS :: (a -> b -> c) -> (Int -> a) -> (Int -> b) -> (Int -> c)
 zipWithS f g h n = (g n) `f` (h n)
 
-dig :: Int
-dig = 50
-
 --p-adic rationals
 data PAdic p = P_Adic p Int Sequence
 
+--Number of digits to display
+dig :: Int
+dig = 50
+
 instance (Dec p) => Show (PAdic p) where{
-  show (P_Adic u e s) = "..." ++ (reverse $ dropWhile (=='.') $ dropWhile (=='0') $ take (dig-e+1) $ (take (-e) w)++'.':(drop (-e) w))
-                                 where p = decval u
-                                       w   = (f $ s (dig+(if e>=0 then 0 else -e)))++(cycle "0")
-                                       f 0 = ""
-                                       f n = (if n`mod`p<=9 then toEnum $ (fromEnum '0')+(fromIntegral $ n`mod`p) else toEnum $ (fromEnum 'a')+(fromIntegral $ (n-10)`mod`p)):(f $ n`div`p)
+  show = showNDigits dig
 }
+
+showNDigits :: (Dec p) => Int -> (PAdic p) -> String
+showNDigits n (P_Adic u e s) = "..." ++ (reverse $ dropWhile (=='.') $ dropWhile (=='0') $ take (n-e+1) $ (take (-e) w)++'.':(drop (-e) w))
+                                 where p = decval u
+                                       w   = (f $ s (n+(if e>=0 then 0 else -e)))++(cycle "0")
+                                       f 0 = ""
+                                       f n = (if n`mod`p<=9 then toEnum $ (fromEnum '0')+(fromIntegral $ n`mod`p)
+                                                            else if (n`mod`p<=35) then toEnum $ (fromEnum 'a')+(fromIntegral $ (n-10)`mod`p)
+                                                            else toEnum $ (fromEnum 'A')+(fromIntegral $ (n-36)`mod`p)):(f $ n`div`p)
+
 
 normalise :: (Dec p) => (PAdic p) -> (PAdic p)
 normalise (P_Adic u e s) = if s 0 == 0 then normalise $ P_Adic u (e+1) $ (`div`(decval u)) <$> (s.(+1)) else P_Adic u e s
